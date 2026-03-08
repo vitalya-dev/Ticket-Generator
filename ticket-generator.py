@@ -8,7 +8,7 @@ def create_pdf_label(
     filename="label_output.pdf", 
     logo_path="logo.png", 
     operator_name="@vital...", 
-    phone="89787770769", 
+    phone="8 (978) 895-47-13", 
     time_str="2025-05-16 10:47", 
     description="Пу. Выключается. Михеева приняла"
 ):
@@ -26,40 +26,43 @@ def create_pdf_label(
 
     # --- КОМПАКТНАЯ ШАПКА ---
     if os.path.exists(logo_path):
-        c.drawImage(logo_path, 2*mm, 30*mm, width=8*mm, height=8*mm, mask='auto')
+        c.drawImage(logo_path, 2*mm, 31*mm, width=8*mm, height=8*mm, mask='auto')
 
     c.setFont(font_name, 9)
     c.drawString(12*mm, 35.5*mm, "ООО «ВТИ»")
     
-    c.setFont(font_name, 6)
-    c.drawString(12*mm, 32.5*mm, "ул Советская 26, г. Керчь")
+    c.setFont(font_name, 4)
+    c.drawString(12*mm, 33.5*mm, "ул Советская 26, г. Керчь")
     
-    c.setFont(font_name, 5.5)
-    c.drawString(12*mm, 29.5*mm, "+7 (978) 762-8967,  +7 (978) 010-4949")
+    c.setFont(font_name, 4)
+    c.drawString(12*mm, 31.5*mm, "8 (978) 762-89-67  8 (978) 010-49-49")
 
     # Разделительная линия
     c.setLineWidth(0.5)
-    c.line(0*mm, 27*mm, width, 27*mm)
+    c.line(0*mm, 29*mm, width, 29*mm)
 
-    # --- ДАННЫЕ КЛИЕНТА (с уменьшенным межстрочным интервалом) ---
+    # --- ДАННЫЕ КЛИЕНТА ---
 
-    # Имя оператора (подняли до 24 мм)
-    c.setFont(font_name, 6)
-    c.drawString(2*mm, 24*mm, f"Принял(а): {operator_name}")
+    # 1. Телефон клиента (Самый первый, по центру, крупный)
+    c.setFont(font_name, 18) # Я сделал размер 12, чтобы он бросался в глаза
+    # Центр этикетки по X = 28.5 мм
+    c.drawCentredString(28.5*mm, 21.5*mm, f"{phone}")
     
-    # Телефон клиента (подняли до 19 мм)
-    # На твоем скриншоте телефон выглядит очень крупно! Если хочешь такой же огромный,
-    # можешь поменять размер шрифта с 9 на 11 или 12 вот здесь:
-    c.setFont(font_name, 11) 
-    c.drawString(2*mm, 20*mm, f"Телефон: {phone}")
+    # --- НАСТРОЙКА ИНТЕРВАЛОВ ---
+    start_y = 17 * mm        # Высота, с которой начинаем писать данные оператора
+    line_spacing = 3 * mm  # Межстрочный интервал (уменьши это число, чтобы сжать строки)
     
-    # Время (подтянули до 14.5 мм)
-    c.setFont(font_name, 6)
-    c.drawString(2*mm, 14.5*mm, f"Время: {time_str}")
+    # Возвращаем мелкий шрифт для остального текста
+    c.setFont(font_name, 6) 
+    
+    # 2. Имя оператора (с левого края)
+    c.drawString(2*mm, start_y, f"Принял(а): {operator_name}")
+    
+    # 3. Время
+    c.drawString(2*mm, start_y - line_spacing, f"Время: {time_str}")
 
-    # Описание (подтянули до 10.5 мм)
-    c.setFont(font_name, 6)
-    c.drawString(2*mm, 10.5*mm, f"Описание: {description}")
+    # 4. Описание
+    c.drawString(2*mm, start_y - 2 * line_spacing, f"Описание: {description}")
 
     # Сохраняем готовый PDF
     c.save()
