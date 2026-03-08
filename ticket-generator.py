@@ -20,13 +20,16 @@ def create_multipage_label(
     height = 40 * mm
     
     # --- НАСТРОЙКА ШРИФТОВ ---
-    font_name = 'Arial'
+    font_name = 'Consolas'
     try:
-        pdfmetrics.registerFont(TTFont(font_name, 'arial.ttf'))
-        pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
-        pdfmetrics.registerFontFamily(font_name, normal=font_name, bold='Arial-Bold')
+        # Регистрируем обычный Consolas
+        pdfmetrics.registerFont(TTFont(font_name, 'consola.ttf'))
+        # Регистрируем жирный Consolas
+        pdfmetrics.registerFont(TTFont('Consolas-Bold', 'consolab.ttf'))
+        
+        pdfmetrics.registerFontFamily(font_name, normal=font_name, bold='Consolas-Bold')
     except Exception as e:
-        print("ОШИБКА: Не найден файл шрифта 'arial.ttf' или 'arialbd.ttf'!")
+        print("ОШИБКА: Не найден файл шрифта 'consola.ttf' или 'consolab.ttf'!")
         return
 
     # --- 1. ФУНКЦИЯ ДЛЯ ШАПКИ (будет вызываться на КАЖДОЙ странице) ---
@@ -69,7 +72,7 @@ def create_multipage_label(
 
     # --- 3. НАСТРОЙКА СТИЛЕЙ И ТЕКСТА ---
     style_phone = ParagraphStyle(
-        'PhoneStyle', fontName=font_name, fontSize=18, alignment=TA_CENTER, spaceAfter=5*mm      
+        'PhoneStyle', fontName=font_name, fontSize=16, alignment=TA_CENTER, spaceAfter=5*mm      
     )
     style_info = ParagraphStyle(
         'InfoStyle', fontName=font_name, fontSize=6, leading=9            
@@ -78,7 +81,7 @@ def create_multipage_label(
     # Собираем story. Телефон будет только на первой этикетке! 
     # (если нужно на каждой - скажи, перенесем его в draw_header)
     story: list[Flowable] = [
-        Paragraph(f"{phone}", style_phone),
+        Paragraph(f"<b>{phone}</b>", style_phone),
         Paragraph(f"<b>Принял(а):</b> {operator_name}", style_info),
         Paragraph(f"<b>Время:</b> {time_str}", style_info),
         Paragraph(f"<b>Описание:</b> {description}", style_info)
