@@ -5,7 +5,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, Frame, Flowable
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_CENTER # Импортируем выравнивание по центру
+from reportlab.lib.enums import TA_CENTER 
 
 def create_pdf_label(
     filename="label_output.pdf", 
@@ -20,11 +20,19 @@ def create_pdf_label(
     height = 40 * mm
     c = canvas.Canvas(filename, pagesize=(width, height))
     
+    # --- НАСТРОЙКА ШРИФТОВ (Добавили жирный шрифт) ---
     font_name = 'Arial'
     try:
+        # Регистрируем обычный шрифт
         pdfmetrics.registerFont(TTFont(font_name, 'arial.ttf'))
+        # Регистрируем жирный шрифт (файл arialbd.ttf должен быть рядом со скриптом!)
+        pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
+        
+        # Объединяем их в семейство, чтобы ReportLab знал, что использовать для тега <b>
+        pdfmetrics.registerFontFamily(font_name, normal=font_name, bold='Arial-Bold')
     except Exception as e:
-        print("ОШИБКА: Не найден файл шрифта 'arial.ttf'!")
+        print("ОШИБКА: Не найден файл шрифта 'arial.ttf' или 'arialbd.ttf'!")
+        print("Убедитесь, что оба файла лежат в папке со скриптом.")
         return
 
     # --- КОМПАКТНАЯ ШАПКА ---
@@ -51,32 +59,31 @@ def create_pdf_label(
         'PhoneStyle',
         fontName=font_name,
         fontSize=18,
-        alignment=TA_CENTER, # Выравниваем по центру!
-        spaceAfter=5*mm      # Делаем отступ вниз до следующей строки
+        alignment=TA_CENTER, 
+        spaceAfter=5*mm      
     )
     
     style_info = ParagraphStyle(
         'InfoStyle',
         fontName=font_name,
         fontSize=6,
-        leading=9            # Межстрочный интервал для мелкого текста (в пунктах)
+        leading=9            
     )
 
-    # 2. Создаем рамку. 
-    # Теперь её высота 29мм (всё, что ниже линии). 
-    # topPadding=1*mm дает легкий отступ от самой линии вниз.
+    # 2. Создаем рамку
     frame = Frame(
         0, 0, width, 29*mm, 
         leftPadding=2*mm, bottomPadding=1*mm, rightPadding=2*mm, topPadding=1*mm,
-        showBoundary=1 # Поставь 1, чтобы увидеть границы рамки
+        showBoundary=0 # Вернул 0, чтобы скрыть рамку
     )
     
     # 3. Собираем все строки в один список (story)
+    # Используем HTML-тег <b> для жирного шрифта
     story: list[Flowable] = [
-        Paragraph(f"{phone}", style_phone),
-        Paragraph(f"Принял(а): {operator_name}", style_info),
-        Paragraph(f"Время: {time_str}", style_info),
-        Paragraph(f"Описание: {description}", style_info)
+        Paragraph(f"<b>{phone}</b>", style_phone),
+        Paragraph(f"<b>Принял(а):</b> {operator_name}", style_info),
+        Paragraph(f"<b>Время:</b> {time_str}", style_info),
+        Paragraph(f"<b>Описание:</b> {description}", style_info)
     ]
     
     # 4. Высыпаем всё это в рамку, и она сама всё расставит!
