@@ -3,6 +3,9 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Paragraph, Frame, Flowable
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER # Импортируем выравнивание по центру
 
 def create_pdf_label(
     filename="label_output.pdf", 
@@ -10,7 +13,7 @@ def create_pdf_label(
     operator_name="@vital...", 
     phone="8 (978) 895-47-13", 
     time_str="2025-05-16 10:47", 
-    description="Пу. Выключается. Михеева приняла"
+    description="Пу. Выключается. Михеева приняла, Пу. Выключается. Михеева приняла,"
 ):
     
     width = 57 * mm
@@ -41,28 +44,43 @@ def create_pdf_label(
     c.setLineWidth(0.5)
     c.line(0*mm, 29*mm, width, 29*mm)
 
-    # --- ДАННЫЕ КЛИЕНТА ---
+    # --- ДАННЫЕ КЛИЕНТА (Всё в одном Frame) ---
 
-    # 1. Телефон клиента (Самый первый, по центру, крупный)
-    c.setFont(font_name, 18) # Я сделал размер 12, чтобы он бросался в глаза
-    # Центр этикетки по X = 28.5 мм
-    c.drawCentredString(28.5*mm, 21.5*mm, f"{phone}")
+    # 1. Настраиваем стили текста
+    style_phone = ParagraphStyle(
+        'PhoneStyle',
+        fontName=font_name,
+        fontSize=18,
+        alignment=TA_CENTER, # Выравниваем по центру!
+        spaceAfter=5*mm      # Делаем отступ вниз до следующей строки
+    )
     
-    # --- НАСТРОЙКА ИНТЕРВАЛОВ ---
-    start_y = 17 * mm        # Высота, с которой начинаем писать данные оператора
-    line_spacing = 3 * mm  # Межстрочный интервал (уменьши это число, чтобы сжать строки)
-    
-    # Возвращаем мелкий шрифт для остального текста
-    c.setFont(font_name, 6) 
-    
-    # 2. Имя оператора (с левого края)
-    c.drawString(2*mm, start_y, f"Принял(а): {operator_name}")
-    
-    # 3. Время
-    c.drawString(2*mm, start_y - line_spacing, f"Время: {time_str}")
+    style_info = ParagraphStyle(
+        'InfoStyle',
+        fontName=font_name,
+        fontSize=6,
+        leading=9            # Межстрочный интервал для мелкого текста (в пунктах)
+    )
 
-    # 4. Описание
-    c.drawString(2*mm, start_y - 2 * line_spacing, f"Описание: {description}")
+    # 2. Создаем рамку. 
+    # Теперь её высота 29мм (всё, что ниже линии). 
+    # topPadding=1*mm дает легкий отступ от самой линии вниз.
+    frame = Frame(
+        0, 0, width, 29*mm, 
+        leftPadding=2*mm, bottomPadding=1*mm, rightPadding=2*mm, topPadding=1*mm,
+        showBoundary=1 # Поставь 1, чтобы увидеть границы рамки
+    )
+    
+    # 3. Собираем все строки в один список (story)
+    story: list[Flowable] = [
+        Paragraph(f"{phone}", style_phone),
+        Paragraph(f"Принял(а): {operator_name}", style_info),
+        Paragraph(f"Время: {time_str}", style_info),
+        Paragraph(f"Описание: {description}", style_info)
+    ]
+    
+    # 4. Высыпаем всё это в рамку, и она сама всё расставит!
+    frame.addFromList(story, c)
 
     # Сохраняем готовый PDF
     c.save()
